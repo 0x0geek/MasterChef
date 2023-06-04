@@ -118,7 +118,7 @@ contract MasterChef is Ownable {
         uint256[] memory _rewardTokenPerBlocks,
         uint256 _bonusEndBlock
     ) public {
-        if (_rewardTokens.length != _rewardTokenPerBlocks.length)
+        if ((_rewardTokens.length == 0 || _rewardTokenPerBlocks.length == 0) || (_rewardTokens.length != _rewardTokenPerBlocks.length))
             revert InvalidRewardData();
 
         devaddr = _devaddr;
@@ -534,8 +534,6 @@ contract MasterChef is Ownable {
                 .div(pool.rewardTokens.length)
                 .mul(pool.accRewardPerShares[i])
                 .div(1e12);
-
-            // if (user.amount == 0) break;
         }
 
         pool.lpToken.safeTransfer(address(msg.sender), _amount);

@@ -8,7 +8,7 @@ module.exports = {
       forking: {
         // enabled: true,
         url: "https://api.securerpc.com/v1",
-        blockNumber: 17400487
+        blockNumber: 17403726
       }
     }
   },

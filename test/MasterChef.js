@@ -123,20 +123,52 @@ describe("MasterChef", function () {
     lpInitialBalance = await lpToken.balanceOf(alice.address);
   });
 
-  it("should revert with error message when rewards data is invalid", async function () {
+  it("should revert with error message when there is no reward tokens", async function () {
+
+    const MasterChef = await ethers.getContractFactory("MasterChef");
+
+    const startBlock = await currentBlock();
+    const bonusEndBlock = startBlock.add(1000);
+
+    await expect(
+      MasterChef.deploy(
+        startBlock,
+        dev.address,
+        [],
+        [10, 20, 30],
+        bonusEndBlock)
+    ).to.be.revertedWithCustomError(MasterChef, "InvalidRewardData");
+
+  });
+
+  it("should revert with error message when there is no reward per block", async function () {
+
+    const { tokenA, tokenB } = await loadFixture(deployMockRewardToken);
 
     const startBlock = await currentBlock();
     const bonusEndBlock = startBlock.add(1000);
 
     const MasterChef = await ethers.getContractFactory("MasterChef");
 
-    // Deploy TokenA and  TokenB as reward token
-    const MockRewardToken = await ethers.getContractFactory("MockRewardToken");
-    const tokenA = await MockRewardToken.connect(owner).deploy();
-    await tokenA.deployed();
+    await expect(
+      MasterChef.deploy(
+        startBlock,
+        dev.address,
+        [tokenA.address, tokenB.address],
+        [],
+        bonusEndBlock)
+    ).to.be.revertedWithCustomError(MasterChef, "InvalidRewardData");
 
-    const tokenB = await MockRewardToken.connect(owner).deploy();
-    await tokenB.deployed();
+  });
+
+  it("should revert with error message when rewards data is invalid", async function () {
+
+    const { tokenA, tokenB } = await loadFixture(deployMockRewardToken);
+
+    const startBlock = await currentBlock();
+    const bonusEndBlock = startBlock.add(1000);
+
+    const MasterChef = await ethers.getContractFactory("MasterChef");
 
     await expect(
       MasterChef.deploy(
@@ -148,6 +180,19 @@ describe("MasterChef", function () {
     ).to.be.revertedWithCustomError(MasterChef, "InvalidRewardData");
 
   });
+
+  async function deployMockRewardToken() {
+
+    // Deploy TokenA and  TokenB as reward token
+    const MockRewardToken = await ethers.getContractFactory("MockRewardToken");
+    const tokenA = await MockRewardToken.connect(owner).deploy();
+    await tokenA.deployed();
+
+    const tokenB = await MockRewardToken.connect(owner).deploy();
+    await tokenB.deployed();
+
+    return { tokenA, tokenB };
+  }
 
   async function deployMasterChefContractWithoutPool() {
 
