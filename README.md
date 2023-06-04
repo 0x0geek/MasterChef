@@ -34,8 +34,6 @@ npx hardhat compile
 npx hardhat run scripts/deploy.js
 ```
 
-5. Interact with the contract by calling the swapUSDCtoUSDT(uint256 amount) function to swap USDC tokens for USDT tokens.
-
 #### Usage
 
 The MasterChef contract is intended to be used as part of a larger decentralized application (dApp) that allows users to stake their LP tokens and earn rewards. Developers can integrate the contract into their dApp by interacting with it using web3.js or another Ethereum-compatible library.
