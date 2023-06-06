@@ -118,7 +118,7 @@ contract MasterChef is Ownable {
         uint256[] memory _rewardTokenPerBlocks,
         uint256 _bonusEndBlock
     ) public {
-        if ((_rewardTokens.length == 0 || _rewardTokenPerBlocks.length == 0) || (_rewardTokens.length != _rewardTokenPerBlocks.length))
+        if (_rewardTokens.length != _rewardTokenPerBlocks.length)
             revert InvalidRewardData();
 
         devaddr = _devaddr;
@@ -161,12 +161,14 @@ contract MasterChef is Ownable {
             massUpdatePools();
         }
 
+        uint256 rewardTokensLength = rewardTokens.length;
+
         uint256[] memory _lastRewardBlocks = new uint256[](rewardTokens.length);
         uint256[] memory _accRewardPerShares = new uint256[](
-            rewardTokens.length
+            rewardTokensLength
         );
 
-        for (uint256 i = 0; i < rewardTokens.length; i++) {
+        for (uint256 i; i != rewardTokensLength; ++i) {
             _accRewardPerShares[i] = 0;
             _lastRewardBlocks[i] = block.number > startBlock
                 ? block.number
@@ -270,9 +272,11 @@ contract MasterChef is Ownable {
         uint256 accRewardPerShare = 0;
         uint256 lpSupply = pool.lpToken.balanceOf(address(this));
 
-        uint256[] memory pendings = new uint256[](pool.rewardTokens.length);
+        uint256 rewardTokensLength = pool.rewardTokens.length;
 
-        for (uint256 i = 0; i < pool.rewardTokens.length; i++) {
+        uint256[] memory pendings = new uint256[](rewardTokensLength);
+
+        for (uint256 i; i != rewardTokensLength; ++i) {
             pendings[i] = 0;
             accRewardPerShare = pool.accRewardPerShares[i];
 
@@ -294,7 +298,7 @@ contract MasterChef is Ownable {
             if (user.amount > 0) {
                 pendings[i] = user
                     .amount
-                    .div(pool.rewardTokens.length)
+                    .div(rewardTokensLength)
                     .mul(accRewardPerShare)
                     .div(1e12)
                     .sub(user.rewardDebts[i]);
@@ -321,8 +325,9 @@ contract MasterChef is Ownable {
         uint256 multiplier = 0;
         uint256 reward = 0;
         uint256 lpSupply = 0;
+        uint256 rewardTokensLength = pool.rewardTokens.length;
 
-        for (uint256 i = 0; i < pool.rewardTokens.length; i++) {
+        for (uint256 i; i != rewardTokensLength; ++i) {
             if (block.number <= pool.lastRewardBlocks[i]) {
                 continue;
             }
@@ -336,7 +341,7 @@ contract MasterChef is Ownable {
             multiplier = getMultiplier(pool.lastRewardBlocks[i], block.number);
 
             reward = multiplier
-                .div(pool.rewardTokens.length)
+                .div(rewardTokensLength)
                 .mul(pool.rewardTokenPerBlocks[i])
                 .mul(pool.allocPoint)
                 .div(totalAllocPoint);
@@ -378,11 +383,13 @@ contract MasterChef is Ownable {
         UserInfo storage user = userInfo[_pid][msg.sender];
         updatePool(_pid);
 
-        for (uint256 i = 0; i < pool.rewardTokens.length; i++) {
+        uint256 rewardTokensLength = pool.rewardTokens.length;
+
+        for (uint256 i; i != rewardTokensLength; ++i) {
             if (user.amount > 0) {
                 uint256 pending = user
                     .amount
-                    .div(pool.rewardTokens.length)
+                    .div(rewardTokensLength)
                     .mul(pool.accRewardPerShares[i])
                     .div(1e12)
                     .sub(user.rewardDebts[i]);
@@ -390,11 +397,11 @@ contract MasterChef is Ownable {
 
                 user.rewardDebts[i] = user
                     .amount
-                    .div(pool.rewardTokens.length)
+                    .div(rewardTokensLength)
                     .mul(pool.accRewardPerShares[i])
                     .div(1e12);
             } else {
-                user.rewardDebts = new uint256[](pool.rewardTokens.length);
+                user.rewardDebts = new uint256[](rewardTokensLength);
                 break;
             }
         }
@@ -426,17 +433,19 @@ contract MasterChef is Ownable {
         UserInfo storage user = userInfo[_pid][msg.sender];
         updatePool(_pid);
 
-        for (uint256 i = 0; i < pool.rewardTokens.length; i++) {
+        uint256 rewardTokensLength = pool.rewardTokens.length;
+
+        for (uint256 i; i != rewardTokensLength; ++i) {
             uint256 pending = user
                 .amount
-                .div(pool.rewardTokens.length)
+                .div(rewardTokensLength)
                 .mul(pool.accRewardPerShares[i])
                 .div(1e12)
                 .sub(user.rewardDebts[i]);
             safeRewardTransfer(pool.rewardTokens[i], msg.sender, pending);
             user.rewardDebts[i] = user
                 .amount
-                .div(pool.rewardTokens.length)
+                .div(rewardTokensLength)
                 .mul(pool.accRewardPerShares[i])
                 .div(1e12);
         }
@@ -464,19 +473,20 @@ contract MasterChef is Ownable {
         updatePool(_pid);
 
         uint256 pending = 0;
+        uint256 rewardTokensLength = pool.rewardTokens.length;
 
-        for (uint256 i = 0; i < pool.rewardTokens.length; i++) {
+        for (uint256 i; i != rewardTokensLength; ++i) {
             if (address(pool.rewardTokens[i]) == _rewardToken) {
                 pending = user
                     .amount
-                    .div(pool.rewardTokens.length)
+                    .div(rewardTokensLength)
                     .mul(pool.accRewardPerShares[i])
                     .div(1e12)
                     .sub(user.rewardDebts[i]);
                 safeRewardTransfer(pool.rewardTokens[i], msg.sender, pending);
                 user.rewardDebts[i] = user
                     .amount
-                    .div(pool.rewardTokens.length)
+                    .div(rewardTokensLength)
                     .mul(pool.accRewardPerShares[i])
                     .div(1e12);
                 break;
@@ -517,11 +527,13 @@ contract MasterChef is Ownable {
 
         updatePool(_pid);
 
-        for (uint256 i = 0; i < pool.rewardTokens.length; i++) {
+        uint256 rewardTokensLength = pool.rewardTokens.length;
+
+        for (uint256 i; i != rewardTokensLength; ++i) {
             if (user.amount > 0) {
                 uint256 pending = user
                     .amount
-                    .div(pool.rewardTokens.length)
+                    .div(rewardTokensLength)
                     .mul(pool.accRewardPerShares[i])
                     .div(1e12)
                     .sub(user.rewardDebts[i]);
@@ -531,7 +543,7 @@ contract MasterChef is Ownable {
             user.rewardDebts[i] = user
                 .amount
                 .sub(_amount)
-                .div(pool.rewardTokens.length)
+                .div(rewardTokensLength)
                 .mul(pool.accRewardPerShares[i])
                 .div(1e12);
         }
@@ -550,7 +562,9 @@ contract MasterChef is Ownable {
 
         user.amount = 0;
 
-        for (uint256 i = 0; i < pool.rewardTokens.length; i++) {
+        uint256 rewardTokensLength = pool.rewardTokens.length;
+
+        for (uint256 i; i != rewardTokensLength; ++i) {
             user.rewardDebts[i] = 0;
         }
 
