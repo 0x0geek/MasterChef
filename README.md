@@ -16,7 +16,7 @@ Thiscontract is modeled after SushiSwap's Masterchef and built on the Ethereum b
 
 1. Install dependencies.
 ```shell
-git clone https://github.com/peterch0829/MasterChef.git
+git clone https://github.com/0x00dev/MasterChef.git
 ```
 
 2. Install dependencies.
